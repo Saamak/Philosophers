@@ -6,7 +6,7 @@
 /*   By: ppitzini <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/08 13:24:49 by ppitzini          #+#    #+#             */
-/*   Updated: 2024/05/16 16:01:18 by ppitzini         ###   ########.fr       */
+/*   Updated: 2024/05/22 12:43:13 by ppitzini         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ typedef struct s_monitoring
 {
 	pthread_t		thread;
 	int				dead;
+	int				meal;
+	int				nbr_eat;
 	pthread_mutex_t	write_lock;
 	pthread_mutex_t	dead_lock;
 	pthread_mutex_t	meal_lock;
@@ -49,6 +51,7 @@ typedef struct s_philo
 	int				time_to_sleep;
 	int				nb_eat;
 	int				*dead;
+	int				*meal;
 	int				forks;
 	int				start_time;
 	int				last_meal;
@@ -68,13 +71,14 @@ void	init_monitor(t_monitor *monitor);
 // Utils
 int		check_args(int ac, char **av);
 int		ft_usleep(size_t milliseconds);
-int		check_all_death(t_philo *philo);
+int		check_all_death(t_philo *philo, t_monitor *monitor);
 int		check_value_death(t_philo *philo);
 void	choose_fork(t_philo *philo, pthread_mutex_t **first_fork,
 			pthread_mutex_t **second_fork);
-void	thread_join(t_philo *philo, t_monitor monitor);
-int		get_time_since_last_meal(t_philo *philo,
-			int i, int *time_since_last_meal);
+void	thread_join(t_philo *philo);
+int		all_eat(t_philo *philo);
+int		check_value_meal(t_philo *philo);
+int		ft_atoi(const char *str);
 
 // Print
 void	print_infos(t_philo *philo);

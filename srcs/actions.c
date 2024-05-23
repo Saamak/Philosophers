@@ -6,7 +6,7 @@
 /*   By: ppitzini <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 15:31:24 by ppitzini          #+#    #+#             */
-/*   Updated: 2024/05/16 15:55:10 by ppitzini         ###   ########.fr       */
+/*   Updated: 2024/05/18 18:08:42 by ppitzini         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ int	is_eating(t_philo *philo)
 	pthread_mutex_t	*second_fork;
 
 	choose_fork(philo, &first_fork, &second_fork);
-	if (check_value_death(philo) == 1 || philo->nb_eat == 0)
+	if (check_value_death(philo) == 1 || check_value_meal(philo) == 1)
 		return (END_OF_SIMULATION);
 	pthread_mutex_lock(first_fork);
 	if (check_value_death(philo) == 1)

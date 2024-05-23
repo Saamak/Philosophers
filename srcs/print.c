@@ -6,7 +6,7 @@
 /*   By: ppitzini <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 15:30:38 by ppitzini          #+#    #+#             */
-/*   Updated: 2024/05/16 15:54:28 by ppitzini         ###   ########.fr       */
+/*   Updated: 2024/05/18 16:50:58 by ppitzini         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 
 void	print_death(t_philo *philo, int elapsed_time, int i)
 {
-	pthread_mutex_lock(philo[i].write_lock);
+	pthread_mutex_lock(philo->write_lock);
 	printf(BOLD"%d %d %s\n", elapsed_time, philo[i].id, R"died"RESET);
-	pthread_mutex_unlock(philo[i].write_lock);
+	pthread_mutex_unlock(philo->write_lock);
 }
 
 void	print_action(t_philo *philo, char *action)

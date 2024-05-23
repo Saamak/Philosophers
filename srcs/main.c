@@ -6,32 +6,40 @@
 /*   By: ppitzini <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 15:45:46 by ppitzini          #+#    #+#             */
-/*   Updated: 2024/05/16 15:59:18 by ppitzini         ###   ########.fr       */
+/*   Updated: 2024/05/22 12:45:33 by ppitzini         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/philosopher.h"
 
-int	check_all_death(t_philo *philo)
+int	handle_death(t_philo *philo, int i)
+{
+	int	elapsed_time;
+
+	elapsed_time = get_current_time() - philo->start_time;
+	print_death(philo, elapsed_time, i);
+	*philo[i].dead = 1;
+	pthread_mutex_unlock(philo->dead_lock);
+	return (1);
+}
+
+int	check_all_death(t_philo *philo, t_monitor *monitor)
 {
 	int	i;
 	int	time_since_last_meal;
-	int	elapsed_time;
 
 	i = 0;
 	while (i < philo->nb_philo)
 	{
-		if (get_time_since_last_meal(philo, i, &time_since_last_meal))
+		if (monitor->nbr_eat == 0 && all_eat(philo))
 			return (1);
-		if (*philo[i].dead == 0 && time_since_last_meal > philo[i].time_to_die)
-		{
-			elapsed_time = get_current_time() - philo->start_time;
-			pthread_mutex_lock(philo[i].dead_lock);
-			*philo[i].dead = 1;
-			pthread_mutex_unlock(philo[i].dead_lock);
-			print_death(philo, elapsed_time, i);
-			return (1);
-		}
+		pthread_mutex_lock(philo->meal_lock);
+		time_since_last_meal = get_current_time() - philo[i].last_meal;
+		pthread_mutex_unlock(philo->meal_lock);
+		pthread_mutex_lock(philo->dead_lock);
+		if (time_since_last_meal > philo[i].time_to_die)
+			return (handle_death(philo, i));
+		pthread_mutex_unlock(philo->dead_lock);
 		if (i == philo->nb_philo)
 			i = 0;
 		else
@@ -51,7 +59,7 @@ static void	*routine(void *params)
 		ft_usleep(10);
 	while (1)
 	{
-		if (check_value_death(philo))
+		if (check_value_death(philo) == 1 || check_value_meal(philo) == 1)
 			break ;
 		if (is_eating(philo) == END_OF_SIMULATION)
 			break ;
@@ -67,30 +75,18 @@ static void	*routine(void *params)
 	return (SUCCESS);
 }
 
-void	*monitoring(void *params)
-{
-	t_philo	*philo;
-
-	philo = params;
-	while (1)
-	{
-		if (check_all_death(philo))
-			break ;
-	}
-	return (SUCCESS);
-}
-
 void	gen_threads(t_philo *philo, t_monitor *monitor)
 {
 	int	i;
 
 	i = 0;
+	if (philo->nb_eat == -1)
+		monitor->nbr_eat = 1;
 	while (i < philo->nb_philo)
 	{
 		pthread_create(&philo[i].thread_id, NULL, routine, &philo[i]);
 		i++;
 	}
-	pthread_create(&monitor->thread, NULL, monitoring, philo);
 }
 
 int	main(int ac, char **av)
@@ -104,13 +100,18 @@ int	main(int ac, char **av)
 	if (check_args(ac, av))
 		return (1);
 	init_monitor(&monitor);
-	nb_philo = atoi(av[1]);
+	nb_philo = ft_atoi(av[1]);
 	philo = malloc(sizeof(t_philo) * nb_philo);
 	philo = init_struct(av, philo, &monitor, nb_philo);
 	forks = malloc(sizeof(pthread_mutex_t) * philo->nb_philo);
 	init_forks(philo, forks);
 	gen_threads(philo, &monitor);
-	thread_join(philo, monitor);
+	while (1)
+	{
+		if (check_all_death(philo, &monitor))
+			break ;
+	}
+	thread_join(philo);
 	free(forks);
 	free(philo);
 	return (0);
